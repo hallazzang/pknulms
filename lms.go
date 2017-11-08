@@ -71,7 +71,7 @@ func (c *Client) Login(id, pw string) (bool, error) {
 
 	html, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
 	return !strings.Contains(string(html), "로그인 정보가 일치하지 않습니다."), nil
