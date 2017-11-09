@@ -1,6 +1,6 @@
 # pknulms
 
-[![GoDoc](https://godoc.org/github.com/hallazzang/pknulms?status.svg)](https://godoc.org/github.com/hallazzang/pknulms)
+[![GoDoc](https://godoc.org/github.com/hallazzang/pknulms?status.svg)](https://godoc.org/github.com/hallazzang/pknulms) [![Go Report Card](https://goreportcard.com/badge/github.com/hallazzang/pknulms)](https://goreportcard.com/report/github.com/hallazzang/pknulms)
 
 Go LMS client for Pukyong National University.
 
