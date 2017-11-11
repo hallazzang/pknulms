@@ -73,11 +73,11 @@ func NewClient() (*Client, error) {
 
 // MustNewClient attempts to create a new client, panics when an error has occurred.
 func MustNewClient() *Client {
-	c, err := NewClient()
-	if err != nil {
+	if c, err := NewClient(); err != nil {
 		panic(err)
+	} else {
+		return c
 	}
-	return c
 }
 
 // Login logs client into LMS.
@@ -97,7 +97,7 @@ func (c *Client) Login(id, pw string) (bool, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return false, fmt.Errorf("Expected HTTP status code 200, got %d.", resp.StatusCode)
+		return false, fmt.Errorf("Expected HTTP status code 200, got %d", resp.StatusCode)
 	}
 
 	html, err := ioutil.ReadAll(resp.Body)
@@ -110,11 +110,11 @@ func (c *Client) Login(id, pw string) (bool, error) {
 
 // MustLogin attempts to login, panics when an error has occurred.
 func (c *Client) MustLogin(id, pw string) bool {
-	result, err := c.Login(id, pw)
-	if err != nil {
+	if result, err := c.Login(id, pw); err != nil {
 		panic(err)
+	} else {
+		return result
 	}
-	return result
 }
 
 // GetNotifications returns a slice of notifications for given start offset and count.
@@ -151,14 +151,14 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 
 		href, exists := a.Attr("href")
 		if !exists {
-			e = fmt.Errorf("Missing 'href' attribute for the site-link tag.")
+			e = fmt.Errorf("Missing 'href' attribute for the site-link tag")
 			return false
 		}
 		link = "http://lms.pknu.ac.kr" + href
 
 		onclick, exists := a.Attr("onclick")
 		if !exists {
-			e = errors.New("Missing 'onclick' attribute for the site-link tag.")
+			e = errors.New("Missing 'onclick' attribute for the site-link tag")
 			return false
 		}
 		matches := jsStringRe.FindAllStringSubmatch(onclick, -1)
@@ -207,11 +207,11 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 // panics when an error has occurred.
 // Note that start offset begins from 1 so the FIRST notification would be at offset 1, not 0.
 func (c *Client) MustGetNotifications(start, count int) []*Notification {
-	result, err := c.GetNotifications(start, count)
-	if err != nil {
+	if result, err := c.GetNotifications(start, count); err != nil {
 		panic(err)
+	} else {
+		return result
 	}
-	return result
 }
 
 // GetNotificationsByPage returns a slice of notifications for given page.
@@ -224,9 +224,9 @@ func (c *Client) GetNotificationsByPage(page int) (result []*Notification, e err
 // MustGetNotificationsByPage returns a slice of notifications for given page,
 // panics when an error has occurred.
 func (c *Client) MustGetNotificationsByPage(page int) []*Notification {
-	result, err := c.GetNotificationsByPage(page)
-	if err != nil {
+	if result, err := c.GetNotificationsByPage(page); err != nil {
 		panic(err)
+	} else {
+		return result
 	}
-	return result
 }
