@@ -149,20 +149,20 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 		a := s.Find(".site-link").First()
 		typeText, title = splitString(strings.TrimSpace(a.Text()), ": ")
 
-		if href, exists := a.Attr("href"); !exists {
+		href, exists := a.Attr("href")
+		if !exists {
 			e = fmt.Errorf("Missing 'href' attribute for the site-link tag.")
 			return false
-		} else {
-			link = "http://lms.pknu.ac.kr" + href
 		}
+		link = "http://lms.pknu.ac.kr" + href
 
-		if onclick, exists := a.Attr("onclick"); !exists {
+		onclick, exists := a.Attr("onclick")
+		if !exists {
 			e = errors.New("Missing 'onclick' attribute for the site-link tag.")
 			return false
-		} else {
-			matches := jsStringRe.FindAllStringSubmatch(onclick, -1)
-			lecture.Key = matches[1][1]
 		}
+		matches := jsStringRe.FindAllStringSubmatch(onclick, -1)
+		lecture.Key = matches[1][1]
 
 		t := s.Find("span").Map(func(i int, s *goquery.Selection) string {
 			return strings.TrimSpace(s.Text())
