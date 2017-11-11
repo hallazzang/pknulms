@@ -29,8 +29,7 @@ func main() {
 	client := pknulms.MustNewClient()
 
 	if !client.MustLogin("YOUR_STUDENT_NO", "YOUR_PASSWORD") { // You should replace these values
-		fmt.Println("Login failed.")
-		os.Exit(1)
+        panic("Login failed.")
 	}
 
 	for i, n := range client.MustGetNotificationsByPage(1) {
