@@ -73,11 +73,11 @@ func NewClient() (*Client, error) {
 
 // MustNewClient attempts to create a new client, panics when an error has occurred.
 func MustNewClient() *Client {
-	if c, err := NewClient(); err != nil {
+	c, err := NewClient()
+	if err != nil {
 		panic(err)
-	} else {
-		return c
 	}
+	return c
 }
 
 // Login logs client into LMS.
@@ -110,11 +110,11 @@ func (c *Client) Login(id, pw string) (bool, error) {
 
 // MustLogin attempts to login, panics when an error has occurred.
 func (c *Client) MustLogin(id, pw string) bool {
-	if result, err := c.Login(id, pw); err != nil {
+	result, err := c.Login(id, pw)
+	if err != nil {
 		panic(err)
-	} else {
-		return result
 	}
+	return result
 }
 
 // GetNotifications returns a slice of notifications for given start offset and count.
@@ -207,11 +207,11 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 // panics when an error has occurred.
 // Note that start offset begins from 1 so the FIRST notification would be at offset 1, not 0.
 func (c *Client) MustGetNotifications(start, count int) []*Notification {
-	if result, err := c.GetNotifications(start, count); err != nil {
+	result, err := c.GetNotifications(start, count)
+	if err != nil {
 		panic(err)
-	} else {
-		return result
 	}
+	return result
 }
 
 // GetNotificationsByPage returns a slice of notifications for given page.
@@ -224,9 +224,9 @@ func (c *Client) GetNotificationsByPage(page int) (result []*Notification, e err
 // MustGetNotificationsByPage returns a slice of notifications for given page,
 // panics when an error has occurred.
 func (c *Client) MustGetNotificationsByPage(page int) []*Notification {
-	if result, err := c.GetNotificationsByPage(page); err != nil {
+	result, err := c.GetNotificationsByPage(page)
+	if err != nil {
 		panic(err)
-	} else {
-		return result
 	}
+	return result
 }
