@@ -1,6 +1,6 @@
 # pknulms
 
-[![GoDoc](https://godoc.org/github.com/hallazzang/pknulms?status.svg)](https://godoc.org/github.com/hallazzang/pknulms) [![Go Report Card](https://goreportcard.com/badge/github.com/hallazzang/pknulms)](https://goreportcard.com/report/github.com/hallazzang/pknulms)
+[![GoDoc](https://godoc.org/github.com/hallazzang/pknulms?status.svg)](https://godoc.org/github.com/hallazzang/pknulms)
 
 Go LMS client for Pukyong National University.
 
@@ -19,22 +19,22 @@ Here's a brief example:
 package main
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
 
-	"github.com/hallazzang/pknulms"
+    "github.com/hallazzang/pknulms"
 )
 
 func main() {
-	client := pknulms.MustNewClient()
+    client := pknulms.MustNewClient()
 
-	if !client.MustLogin("YOUR_STUDENT_NO", "YOUR_PASSWORD") { // You should replace these values
+    if !client.MustLogin("YOUR_STUDENT_NO", "YOUR_PASSWORD") { // You should replace these values
         panic("Login failed.")
-	}
+    }
 
-	for i, n := range client.MustGetNotificationsByPage(1) {
-		fmt.Printf("%2d: %s\n", i+1, n.Title)
-	}
+    for i, n := range client.MustGetNotificationsByPage(1) {
+        fmt.Printf("%2d: %s\n", i+1, n.Title)
+    }
 }
 ```
 
