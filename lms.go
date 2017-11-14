@@ -3,6 +3,7 @@ package pknulms
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -119,7 +120,12 @@ func (c *Client) MustLogin(id, pw string) bool {
 
 // GetNotifications returns a slice of notifications for given start offset and count.
 // Note that start offset begins from 1 so the FIRST notification would be at offset 1, not 0.
+// Weirdly, it seems that the count must be >= 8 because of some mysterious reasons.
 func (c *Client) GetNotifications(start, count int) (result []*Notification, e error) {
+	if count < 8 {
+		return nil, errors.New("Count must be >= 8")
+	}
+
 	target := "http://lms.pknu.ac.kr/ilos/mp/mypage_main_list.acl"
 	params := url.Values{
 		"start":    {strconv.Itoa(start)},
@@ -229,4 +235,87 @@ func (c *Client) MustGetNotificationsByPage(page int) []*Notification {
 	} else {
 		return result
 	}
+}
+
+// prefetchArticle requests to prefetch an article.
+func (c *Client) prefetchArticle(key, returnUrl string) error {
+	target := "http://lms.pknu.ac.kr/ilos/st/course/eclass_room2.acl"
+	params := url.Values{
+		"KJKEY":     {key},
+		"returnURI": {returnUrl},
+		"encoding":  {"utf-8"},
+	}
+	resp, err := c.httpClient.PostForm(target, params)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	type Result struct {
+		IsError     bool   `json:"isError"`
+		Message     string `json:"message"`
+		LectureType string `json:"lectType"`
+		ReturnUrl   string `json:"returnURL"`
+	}
+	var result Result
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		panic(err)
+	}
+
+	if result.IsError {
+		return errors.New(result.Message)
+	} else {
+		return nil
+	}
+}
+
+// GetNotificationContent returns content of given notification.
+// The result contains HTML codes, not plain text.
+func (c *Client) GetNotificationContent(n *Notification) (string, error) {
+	err := c.prefetchArticle(n.Lecture.Key,
+		strings.TrimPrefix(n.Link, "http://lms.pknu.ac.kr"))
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := c.httpClient.Get(n.Link + "&s=menu&acl=")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return "", err
+	}
+
+	lines := doc.Find(".bbsview .textviewer").Contents().Map(func(i int, s *goquery.Selection) string {
+		switch goquery.NodeName(s) {
+		case "script":
+			return ""
+		case "#text":
+			return strings.TrimSpace(s.Text())
+		default:
+			html, _ := goquery.OuterHtml(s)
+			return strings.TrimSpace(html)
+		}
+	})
+
+	return strings.Join(filterNotEmptyString(lines), "\n"), nil
+}
+
+// MustGetNotificationContent returns content of given notification.
+// The result contains HTML codes, not plain text.
+func (c *Client) MustGetNotificationContent(n *Notification) string {
+	result, err := c.GetNotificationContent(n)
+	if err != nil {
+		panic(err)
+	}
+	return result
 }
