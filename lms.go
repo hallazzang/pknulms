@@ -238,11 +238,11 @@ func (c *Client) MustGetNotificationsByPage(page int) []*Notification {
 }
 
 // prefetchArticle requests to prefetch an article.
-func (c *Client) prefetchArticle(key, returnUrl string) error {
+func (c *Client) prefetchArticle(key, returnURL string) error {
 	target := "http://lms.pknu.ac.kr/ilos/st/course/eclass_room2.acl"
 	params := url.Values{
 		"KJKEY":     {key},
-		"returnURI": {returnUrl},
+		"returnURI": {returnURL},
 		"encoding":  {"utf-8"},
 	}
 	resp, err := c.httpClient.PostForm(target, params)
@@ -255,7 +255,7 @@ func (c *Client) prefetchArticle(key, returnUrl string) error {
 		IsError     bool   `json:"isError"`
 		Message     string `json:"message"`
 		LectureType string `json:"lectType"`
-		ReturnUrl   string `json:"returnURL"`
+		ReturnURL   string `json:"returnURL"`
 	}
 	var result Result
 
@@ -267,12 +267,11 @@ func (c *Client) prefetchArticle(key, returnUrl string) error {
 	if err := json.Unmarshal(body, &result); err != nil {
 		panic(err)
 	}
-
 	if result.IsError {
 		return errors.New(result.Message)
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 // GetNotificationContent returns content of given notification.
