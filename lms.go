@@ -28,6 +28,7 @@ type Lecture struct {
 // Submitted field holds a boolean value whether the assignment has assigned or not
 // if the Type of notification is assignment(in string form, "과제") else always false.
 type Notification struct {
+	ID             int
 	Link           string
 	Type           string
 	Title          string
@@ -145,9 +146,11 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 	}
 
 	dateRe := regexp.MustCompile(`^(.+?) \| 마감일\((.+?)\)$`)
+	idRe := regexp.MustCompile(`=(\d+)$`)
 	jsStringRe := regexp.MustCompile(`'(.*?)'`)
 
 	doc.Find(".resultBox li:nth-of-type(2)").EachWithBreak(func(i int, s *goquery.Selection) bool {
+		var id int
 		var link, typeText, title, date, professor, previewContent string
 		var submitted bool
 		var lecture Lecture
@@ -160,6 +163,16 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 			e = fmt.Errorf("Missing 'href' attribute for the site-link tag")
 			return false
 		}
+		idMatches := idRe.FindStringSubmatch(href)
+		if len(idMatches) == 0 {
+			e = fmt.Errorf("Mismatching 'href' pattern: %s", href)
+			return false
+		}
+		id, err := strconv.Atoi(idMatches[1])
+		if err != nil {
+			e = err
+			return false
+		}
 		link = "http://lms.pknu.ac.kr" + href
 
 		onclick, exists := a.Attr("onclick")
@@ -167,17 +180,25 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 			e = errors.New("Missing 'onclick' attribute for the site-link tag")
 			return false
 		}
-		matches := jsStringRe.FindAllStringSubmatch(onclick, -1)
-		lecture.Key = matches[1][1]
+		jsStringMatches := jsStringRe.FindAllStringSubmatch(onclick, -1)
+		if len(jsStringMatches) < 2 || len(jsStringMatches[1]) < 2 {
+			e = fmt.Errorf("Mismatching 'onclick' pattern: %s", onclick)
+			return false
+		}
+		lecture.Key = jsStringMatches[1][1]
 
 		t := s.Find("span").Map(func(i int, s *goquery.Selection) string {
 			return strings.TrimSpace(s.Text())
 		})
 		previewContent = t[1]
 		if typeText == "과제" {
-			matches := dateRe.FindStringSubmatch(t[0])
-			submitted = matches[1] == "제출"
-			date = matches[2]
+			dateMatches := dateRe.FindStringSubmatch(t[0])
+			if len(dateMatches) < 3 {
+				e = fmt.Errorf("Mismatching dateText pattern: %s", t[0])
+				return false
+			}
+			submitted = dateMatches[1] == "제출"
+			date = dateMatches[2]
 		} else {
 			submitted = false
 			date = t[0]
@@ -193,6 +214,7 @@ func (c *Client) GetNotifications(start, count int) (result []*Notification, e e
 		})
 
 		result = append(result, &Notification{
+			ID:             id,
 			Link:           link,
 			Type:           typeText,
 			Title:          title,
