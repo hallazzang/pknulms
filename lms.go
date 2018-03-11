@@ -84,3 +84,22 @@ func (c *Client) MustLogin(id, pw string) bool {
 		return result
 	}
 }
+
+// Logout logs client out from LMS.
+func (c *Client) Logout() error {
+	target := "http://lms.pknu.ac.kr/ilos/lo/logout.acl"
+	resp, err := c.httpClient.Get(target)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
+}
+
+// MustLogout attempts to logout, panics when an error has occurred.
+func (c *Client) MustLogout() {
+	if err := c.Logout(); err != nil {
+		panic(err)
+	}
+}
